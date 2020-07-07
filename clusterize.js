@@ -60,14 +60,18 @@
       self.content_elem.setAttribute('tabindex', 0);
 
     // private parameters
-    var rows = isArray(data.rows)
+    // var rows = isArray(data.rows)
+    //   ? data.rows
+    //   : self.fetchMarkup();
+
+    self.options.rows = isArray(data.rows)
       ? data.rows
       : self.fetchMarkup();
     var cache = {};
     var scroll_top = self.scroll_elem.scrollTop;
 
     // append initial data
-    self.insertToDOM(rows, cache);
+    self.insertToDOM(self.options.rows, cache);
 
     // restore the scroll position
     self.scroll_elem.scrollTop = scroll_top;
@@ -88,7 +92,7 @@
           }, 50);
         }
         if (last_cluster != (last_cluster = self.getClusterNum()))
-          self.insertToDOM(rows, cache);
+          self.insertToDOM(self.options.rows, cache);
         if (self.options.callbacks.scrollingProgress)
           self.options.callbacks.scrollingProgress(self.getScrollProgress());
       },
@@ -104,22 +108,22 @@
     self.destroy = function (clean) {
       off('scroll', self.scroll_elem, scrollEv);
       off('resize', window, resizeEv);
-      self.html((clean ? self.generateEmptyRow() : rows).join(''));
+      self.html((clean ? self.generateEmptyRow() : self.options.rows).join(''));
     }
     self.refresh = function (force) {
-      if (self.getRowsHeight(rows) || force) self.update(rows);
+      if (self.getRowsHeight(self.options.rows) || force) self.update(self.options.rows);
     }
     self.update = function (new_rows) {
-      rows = isArray(new_rows)
+      self.options.rows = isArray(new_rows)
         ? new_rows
         : [];
       var scroll_top = self.scroll_elem.scrollTop;
       // fixes #39
-      if (rows.length * self.options.item_height < scroll_top) {
+      if (self.options.rows.length * self.options.item_height < scroll_top) {
         self.scroll_elem.scrollTop = 0;
         last_cluster = 0;
       }
-      self.insertToDOM(rows, cache);
+      self.insertToDOM(self.options.rows, cache);
       self.scroll_elem.scrollTop = scroll_top;
     }
     self.clear = function () {
@@ -129,7 +133,7 @@
       return rows.length;
     }
     self.getScrollProgress = function () {
-      return this.options.scroll_top / (rows.length * this.options.item_height) * 100 || 0;
+      return this.options.scroll_top / (self.options.rows.length * this.options.item_height) * 100 || 0;
     }
 
     var add = function (where, _new_rows) {
@@ -137,10 +141,10 @@
         ? _new_rows
         : [];
       if (!new_rows.length) return;
-      rows = where == 'append'
-        ? rows.concat(new_rows)
-        : new_rows.concat(rows);
-      self.insertToDOM(rows, cache);
+      self.options.rows = where == 'append'
+        ? self.options.rows.concat(new_rows)
+        : new_rows.concat(self.options.rows);
+      self.insertToDOM(self.options.rows, cache);
     }
     self.append = function (rows) {
       add('append', rows);
